@@ -207,10 +207,10 @@ export function Workbench({
           </div>
         </div>
         <div className="kpi">
-          <div className="lbl">Deposit retention</div>
-          <div className="num">{pct(i.depositsEnd / Math.max(1, i.depositsStart))}</div>
+          <div className="lbl">Deposit stock @ 18m</div>
+          <div className="num">{usd(i.depositsEnd)}</div>
           <div className={`delta ${depDelta >= 0 ? "good" : "bad"}`}>
-            {pct(depDelta)} vs baseline stock
+            {pct(depDelta)} vs baseline
           </div>
         </div>
         <div className="kpi">

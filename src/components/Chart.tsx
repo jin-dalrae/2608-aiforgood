@@ -16,8 +16,16 @@ export function LineChart({
   const innerH = h - pad.t - pad.b;
   const n = Math.max(series.baseline.length, 1);
   const all = [...series.baseline, ...series.intervention];
-  const min = Math.min(0, ...all);
-  const max = Math.max(...all, 1e-6);
+  let min = Math.min(...all);
+  let max = Math.max(...all, min + 1e-6);
+  const yPad = (max - min) * 0.1 || Math.abs(max) * 0.04 || 1;
+  if (format === "pct") {
+    min = 0;
+    max += yPad;
+  } else {
+    min -= yPad;
+    max += yPad;
+  }
   const span = max - min || 1;
   const x = (i: number) => pad.l + (i / Math.max(1, n - 1)) * innerW;
   const y = (v: number) => pad.t + (1 - (v - min) / span) * innerH;

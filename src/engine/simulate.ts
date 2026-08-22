@@ -65,7 +65,7 @@ export function simulate(args: {
       householdMap.set(a.id, { agent: { ...a }, cash: [], balance: [], spend: [], employed: [] });
     }
     const newLimit = Math.max(250, a.limit * (1 + policy.limitDelta));
-    if (policy.limitDelta !== 0 && Math.abs(newLimit - a.limit) > 1 && track.has(a.id)) {
+    if (policy.limitDelta !== 0 && Math.abs(newLimit - a.limit) > 1 && track.has(a.id) && a.id < 2) {
       narratives.push({
         month: 0,
         agentId: a.id,
@@ -256,10 +256,14 @@ export function simulate(args: {
       const cashback = onCard * (policy.cashbackBps / 10000);
       a.cash += cashback;
 
-      const precaution = policy.limitDelta < 0 && cashMonths > 2 ? -policy.limitDelta * 0.04 * a.income : 0;
-      const drain = policy.limitDelta < 0 && cashMonths < 1 ? -policy.limitDelta * 0.06 * burn : 0;
-      a.deposits = clamp(a.cash * 0.9 + precaution - drain, 0, a.income * 14);
-      a.cash = clamp(a.cash, -burn * 0.3, a.income * 16);
+      const targetMonths =
+        a.segment === "transactor" ? 4.0 : a.segment === "subprime" ? 0.55 : a.segment === "near_prime" ? 1.0 : 1.8;
+      const targetCash = burn * targetMonths * (policy.limitDelta < 0 && cashMonths > 1.5 ? 1.12 : 1);
+      if (a.cash > targetCash) a.cash -= (a.cash - targetCash) * 0.45;
+      const precaution = policy.limitDelta < 0 && cashMonths > 2 ? -policy.limitDelta * 0.03 * a.income : 0;
+      const drain = policy.limitDelta < 0 && cashMonths < 1 ? -policy.limitDelta * 0.08 * burn : 0;
+      a.deposits = clamp(a.cash * 0.92 + precaution - drain, 0, a.income * 8);
+      a.cash = clamp(a.cash, -burn * 0.3, a.income * 10);
 
       const dqHazard = a.delinquencyDays >= 90
         ? 0.18 + a.risk * 0.35 + (a.employed ? 0 : 0.12) + (policy.limitDelta < 0 && cashMonths < 0.8 ? 0.08 : 0)
@@ -320,9 +324,9 @@ export function simulate(args: {
       if (a.delinquencyDays >= 90) row.dq90 += 1;
 
       if (track.has(a.id) && spend > 8) {
-        const merch = pickMerchant(seed, a.id, m, 3);
         const tickets = 1 + Math.floor(dTicket * 3);
         for (let k = 0; k < tickets; k++) {
+          const merch = pickMerchant(seed, a.id, m, 3 + k);
           const slice = spend / tickets;
           txns.push({
             id: `t${txnN++}`,
