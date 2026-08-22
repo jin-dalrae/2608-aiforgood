@@ -8,7 +8,7 @@ That is the canonical counterfactual in the product requirements. Scorecards ran
 
 This repository is the **interactive demo** of that loop: 1,200 synthetic households, 18 months, two arms that share the same idiosyncratic shocks. Only the issuer action changes. It is decision support, not underwriting.
 
-**Live demo:** [jin-dalrae.github.io/2608-aiforgood](https://jin-dalrae.github.io/2608-aiforgood/)
+**Live demo:** [jin-dalrae.github.io/worldmodelforbanking](https://jin-dalrae.github.io/worldmodelforbanking/)
 
 ## The gap
 
