@@ -1,0 +1,769 @@
+<meta charset="utf-8">
+<title>Retail Banking World Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;1,400;1,500&display=swap">
+
+<style>
+:root{
+  /* light: ledger paper */
+  --bg:#E7E2D7;
+  --stage:#F7F4ED;
+  --panel:#FFFFFF;
+  --panel-2:#F0ECE2;
+  --text:#161D25;
+  --muted:#5D6672;
+  --faint:#8C949E;
+  --line:#D6CFC0;
+  --line-2:#C3BAA8;
+  --amber:#A9670C;
+  --amber-soft:#F3E3C6;
+  --teal:#0F6E62;
+  --teal-soft:#D8ECE7;
+  --red:#A93524;
+  --shadow:0 24px 60px -30px rgba(22,29,37,.45);
+  --k:1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#070B10;
+    --stage:#101821;
+    --panel:#16202B;
+    --panel-2:#1B2734;
+    --text:#E9E5DB;
+    --muted:#95A2B0;
+    --faint:#6C7A88;
+    --line:#243040;
+    --line-2:#31404F;
+    --amber:#E8A33D;
+    --amber-soft:#3A2C15;
+    --teal:#58C4B2;
+    --teal-soft:#14312D;
+    --red:#E0685A;
+    --shadow:0 30px 70px -30px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#070B10;
+  --stage:#101821;
+  --panel:#16202B;
+  --panel-2:#1B2734;
+  --text:#E9E5DB;
+  --muted:#95A2B0;
+  --faint:#6C7A88;
+  --line:#243040;
+  --line-2:#31404F;
+  --amber:#E8A33D;
+  --amber-soft:#3A2C15;
+  --teal:#58C4B2;
+  --teal-soft:#14312D;
+  --red:#E0685A;
+  --shadow:0 30px 70px -30px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.viewport{height:100dvh;min-height:100vh;display:grid;place-items:center;overflow:hidden}
+
+.stage{
+  position:relative;width:1280px;height:720px;flex:none;
+  background:var(--stage);border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  transform:scale(var(--k));transform-origin:center center;
+  overflow:hidden;
+}
+
+/* ---------- slide frame ---------- */
+.slide{position:absolute;inset:0;padding:52px 64px 72px;display:none;flex-direction:column;gap:22px}
+.slide.on{display:flex;animation:rise .32s cubic-bezier(.2,.7,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}}
+
+.eyebrow{
+  display:flex;align-items:baseline;gap:14px;
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+}
+.eyebrow b{color:var(--amber);font-weight:600}
+.eyebrow .rule{flex:1;height:1px;background:var(--line);align-self:center}
+
+h1{font-size:60px;line-height:1.02;letter-spacing:-.032em;font-weight:700;margin:0;text-wrap:balance}
+h2{font-size:34px;line-height:1.1;letter-spacing:-.022em;font-weight:600;margin:0;text-wrap:balance}
+.dek{font-size:17px;line-height:1.5;color:var(--muted);margin:0;max-width:62ch}
+p{margin:0}
+
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+.tag{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-weight:600;
+}
+.tag.t{color:var(--teal)}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;gap:20px}
+
+/* ---------- panels ---------- */
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g4{grid-template-columns:repeat(2,1fr)}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  padding:20px 22px;display:flex;flex-direction:column;gap:10px;min-height:0;
+}
+.card h3{margin:0;font-size:17.5px;font-weight:600;letter-spacing:-.012em}
+.card p{font-size:14px;line-height:1.52;color:var(--muted)}
+ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+li{font-size:14px;line-height:1.5;color:var(--muted);padding-left:16px;position:relative}
+li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:1.5px;background:var(--line-2)}
+li b{color:var(--text);font-weight:600}
+
+/* ---------- title slide ---------- */
+.title-wrap{flex:1;display:grid;grid-template-columns:1.35fr .85fr;gap:56px;align-items:center}
+.title-meta{display:flex;flex-direction:column;gap:14px;border-left:1px solid var(--line);padding-left:26px}
+.title-meta div{display:flex;flex-direction:column;gap:3px}
+.title-meta .k{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.title-meta .v{font-size:14.5px;color:var(--text)}
+.hairline{height:1px;background:var(--line);margin:6px 0 2px}
+
+/* ---------- quote ---------- */
+.quote{
+  background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--amber);
+  padding:26px 30px;display:flex;flex-direction:column;gap:12px;
+}
+.quote q{
+  font-family:"IBM Plex Serif",Georgia,serif;font-style:italic;font-size:25px;line-height:1.34;
+  letter-spacing:-.01em;color:var(--text);quotes:none;text-wrap:balance;
+}
+.quote figcaption{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- table ---------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:13px 16px;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);font-weight:500;border-bottom:1px solid var(--line-2);
+}
+tbody th{width:20%;font-weight:600;color:var(--text);font-size:14px}
+td{color:var(--muted);line-height:1.48;width:40%}
+td.mkt{background:var(--panel-2)}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:none}
+.tbl{border:1px solid var(--line);background:var(--panel);overflow:hidden}
+
+/* ---------- ledger stream ---------- */
+.ledger{
+  background:var(--panel);border:1px solid var(--line);padding:16px 18px;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:2.0;color:var(--muted);
+  overflow-x:auto;
+}
+.ledger .row{display:grid;grid-template-columns:132px 58px 1fr 96px 108px;gap:12px;white-space:nowrap}
+.ledger .row.in{color:var(--teal)}
+.ledger .row.stress{color:var(--red)}
+.ledger .amt{text-align:right;font-variant-numeric:tabular-nums}
+.ledger .bal{text-align:right;font-variant-numeric:tabular-nums;color:var(--faint)}
+.ledger .head{color:var(--faint);font-size:10px;letter-spacing:.14em;text-transform:uppercase;line-height:2.4;border-bottom:1px solid var(--line);margin-bottom:6px}
+
+.vecrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;padding:5px 10px;border-radius:2px;
+  background:var(--panel-2);border:1px solid var(--line);color:var(--muted);white-space:nowrap;
+}
+.chip.a{color:var(--amber);border-color:var(--amber);background:var(--amber-soft)}
+.chip.t{color:var(--teal);border-color:var(--teal);background:var(--teal-soft)}
+.arrow{color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:13px}
+
+/* ---------- formula ---------- */
+.formula{
+  background:var(--panel-2);border:1px solid var(--line);padding:16px 20px;
+  font-family:"IBM Plex Mono",monospace;font-size:13.5px;line-height:1.85;color:var(--text);
+  overflow-x:auto;white-space:pre;
+}
+.formula .pos{color:var(--teal)}
+.formula .neg{color:var(--red)}
+.formula .cmt{color:var(--faint)}
+
+/* ---------- demo slot ---------- */
+.demo-slot{
+  flex:1;min-height:0;border:1.5px dashed var(--line-2);border-radius:3px;background:var(--panel-2);
+  display:grid;place-items:center;text-align:center;padding:24px;
+}
+.demo-slot .inner{display:flex;flex-direction:column;gap:12px;align-items:center;max-width:56ch}
+.pulse{
+  width:9px;height:9px;border-radius:50%;background:var(--amber);
+  animation:blink 1.8s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+
+/* ---------- timeline ---------- */
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);background:var(--panel)}
+.phase{padding:18px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.phase:last-child{border-right:none}
+.phase .n{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;color:var(--amber);font-weight:600}
+.phase h4{margin:0;font-size:15px;font-weight:600}
+.phase p{font-size:12.5px;line-height:1.45;color:var(--muted)}
+.phase .when{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:auto;padding-top:6px}
+
+.risk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.risk .m{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--red);padding-top:2px;letter-spacing:.1em}
+
+/* ---------- diagram ---------- */
+.diagram{flex:1;min-height:0;display:grid;place-items:center}
+.diagram svg{width:100%;height:100%;max-height:100%}
+svg .bx{fill:var(--panel);stroke:var(--line-2);stroke-width:1}
+svg .bx-a{fill:var(--panel);stroke:var(--amber);stroke-width:1.25}
+svg .bx-t{fill:var(--panel);stroke:var(--teal);stroke-width:1.25}
+svg .lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.15em;fill:var(--amber);font-weight:600}
+svg .lbl-t{fill:var(--teal)}
+svg .txt{font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;fill:var(--muted)}
+svg .txt-s{font-family:"IBM Plex Sans",sans-serif;font-size:13px;fill:var(--muted)}
+svg .txt-b{font-family:"IBM Plex Sans",sans-serif;font-size:15px;fill:var(--text);font-weight:600}
+svg .con{stroke:var(--line-2);stroke-width:1.25;fill:none}
+svg .con-d{stroke:var(--amber);stroke-width:1.25;fill:none;stroke-dasharray:5 4}
+svg .flowlbl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;fill:var(--faint)}
+
+/* ---------- speaker notes ---------- */
+.notes{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  background:var(--panel);border-top:1px solid var(--amber);
+  padding:22px 64px 64px;max-height:56%;overflow-y:auto;
+  transform:translateY(101%);transition:transform .26s cubic-bezier(.2,.7,.3,1);
+  box-shadow:0 -20px 50px -30px rgba(0,0,0,.5);
+}
+.notes.on{transform:none}
+@media (prefers-reduced-motion:reduce){.notes{transition:none}}
+.notes .hd{
+  display:flex;align-items:center;gap:14px;margin-bottom:14px;
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+}
+.notes .hd b{color:var(--amber);font-weight:600}
+.notes .hd .rule{flex:1;height:1px;background:var(--line)}
+.notes .txt{display:flex;flex-direction:column;gap:11px;max-width:78ch}
+.notes .txt p{font-size:15.5px;line-height:1.6;color:var(--text)}
+.notes .txt p.cue{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;color:var(--teal);
+}
+
+/* ---------- chrome ---------- */
+.rail{z-index:7;position:absolute;left:64px;right:64px;bottom:30px;display:flex;align-items:center;gap:18px}
+.ticks{display:flex;gap:5px;flex:1}
+.tick{height:2px;flex:1;background:var(--line);transition:background .2s}
+.tick.done{background:var(--line-2)}
+.tick.now{background:var(--amber)}
+.railmeta{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  display:flex;gap:16px;align-items:center;
+}
+.nav{display:flex;gap:6px}
+.nav button{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1;color:var(--muted);
+  background:transparent;border:1px solid var(--line);border-radius:2px;padding:5px 9px;cursor:pointer;
+}
+.nav button:hover{color:var(--text);border-color:var(--line-2)}
+.nav button:focus-visible,.toc li:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* ---------- contents overlay ---------- */
+.toc{
+  position:absolute;inset:0;background:var(--stage);padding:52px 64px;display:none;flex-direction:column;gap:20px;z-index:5;
+}
+.toc.on{display:flex}
+.toc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:2px 40px;flex:1;align-content:start}
+.toc li{
+  display:flex;gap:16px;align-items:baseline;padding:11px 10px;border-bottom:1px solid var(--line);
+  cursor:pointer;color:var(--text);font-size:16px;
+}
+.toc li::before{display:none}
+.toc li:hover{background:var(--panel)}
+.toc li.now{color:var(--amber)}
+.toc li .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);letter-spacing:.1em}
+.toc li.now .n{color:var(--amber)}
+</style>
+
+<div class="viewport">
+<div class="stage" id="stage">
+
+  <!-- ===== 01 TITLE ===== -->
+  <section class="slide on">
+    <div class="eyebrow"><b>01</b><span>Product brief</span><span class="rule"></span><span>Draft &middot; 22 Aug 2026</span></div>
+    <div class="title-wrap">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <h1>LedgerWorld</h1>
+        <p class="dek" style="font-size:21px;line-height:1.42;color:var(--text);max-width:26ch">A world model for retail banking and credit cards.</p>
+        <p class="dek">Capital markets have simulators. Retail banking does not — because retail banking has to simulate people. Paychecks, rent, a card declined at the grocery store, the slow slide into delinquency. LedgerWorld generates the event-level life of a household under a policy the bank has not tried yet, so the experiment runs in a simulator instead of on customers.</p>
+      </div>
+      <div class="title-meta">
+        <div><span class="k">What it is</span><span class="v">A governed, generative simulator of the household financial lifecycle</span></div>
+        <div class="hairline"></div>
+        <div><span class="k">Deployment</span><span class="v">Runs inside the bank's own VPC — no raw data leaves</span></div>
+        <div class="hairline"></div>
+        <div><span class="k">v1 boundary</span><span class="v mono" style="color:var(--amber)">decision_support_only: true</span></div>
+        <div class="hairline"></div>
+        <div><span class="k">Horizon</span><span class="v">MVP in 3–4 months &middot; 18-month platform</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 02 PROBLEM ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>02</b><span>The problem</span><span class="rule"></span><span>An experiment graded 180 days late</span></div>
+    <h2>Every credit policy decision is an experiment run on real people.</h2>
+    <div class="body">
+      <div class="grid g3">
+        <div class="card">
+          <span class="tag">Delayed truth</span>
+          <p>Defaults surface 90–180 days after the decision that caused them. Churn is slower still. By the time the outcome lands, the macro conditions that produced it are gone.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Costly exploration</span>
+          <p>Champion/challenger tests buy information with real losses and real customers. The policies worth knowing about — line cuts in a downturn — are the ones nobody dares to test.</p>
+        </div>
+        <div class="card">
+          <span class="tag">No counterfactual</span>
+          <p>A backtest can only score what happened. It cannot say what a customer <b>would have done</b> under a different limit, because that spending was never recorded.</p>
+        </div>
+      </div>
+      <figure class="quote" style="margin:0">
+        <q>If we cut this cohort's credit line by 20% during an inflationary spike, how do default rates, spending displacement, and deposit retention change over 18 months?</q>
+        <figcaption>The canonical question &mdash; and the MVP acceptance test</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===== 03 WHY TOOLS FAIL ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>03</b><span>Positioning</span><span class="rule"></span><span>Why the existing stack can't answer it</span></div>
+    <h2>Five mature tools. None of them simulates a household.</h2>
+    <div class="body">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Tool</th><th>What it does well</th><th>Why it fails this job</th></tr></thead>
+          <tbody>
+            <tr><th>Scorecards<br><span class="mono" style="font-size:11px;color:var(--faint)">logistic / GBM</span></th><td class="mkt">Rank-orders default risk at a decision point.</td><td>Static P(Y|X). No transition function. Cannot generate spend displacement or merchant substitution.</td></tr>
+            <tr><th>Champion / challenger</th><td class="mkt">Unbiased estimate of a live policy.</td><td>Months per read, paid for in real losses. Cannot explore 50 macro × 20 policy cells.</td></tr>
+            <tr><th>Monte Carlo PD/LGD/EAD</th><td class="mkt">Capital and CECL loss distributions.</td><td>Shocks a loss vector, not a household. No cash-flow identity, no interchange, no rewards P&amp;L.</td></tr>
+            <tr><th>CCAR / DFAST models</th><td class="mkt">Regulatory capital under supervisory scenarios.</td><td>Portfolio-level and highly aggregated. Not usable for a 10k-account product experiment.</td></tr>
+            <tr><th>Capital-markets world models</th><td class="mkt">Stochastic prices, order books, market impact.</td><td>Wrong state, wrong agents, wrong clock. Prices are fast and continuous; card events are discrete, irregular and habit-driven.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dek" style="max-width:none">The gap is not a better PD model. The gap is a calibrated generative simulator of the financial lifecycle, governed well enough that model risk will accept it as decision support.</p>
+    </div>
+  </section>
+
+  <!-- ===== 04 LOOP ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>04</b><span>Anatomy</span><span class="rule"></span><span>State &middot; Action &middot; Transition &middot; Reward</span></div>
+    <h2>A controlled stochastic process over accounts, merchants, and macro climate.</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 1160 500" role="img" aria-label="LedgerWorld loop: state and issuer action feed a six-step transition, producing the next state and a dollar reward, which feed back into state.">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--line-2)"/>
+          </marker>
+          <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="var(--amber)"/>
+          </marker>
+        </defs>
+
+        <rect class="bx" x="52" y="10" width="470" height="150" rx="2"/>
+        <text class="lbl" x="74" y="38">STATE  S_t</text>
+        <text class="txt-s" x="74" y="66">Ledger — balances, limit, APR, days past due</text>
+        <text class="txt-s" x="74" y="91">Latent — cash buffer, burn rate, wallet share</text>
+        <text class="txt-s" x="74" y="116">Merchant graph G, macro climate M_t</text>
+        <text class="txt-s" x="74" y="141">Recent event window</text>
+
+        <rect class="bx-a" x="638" y="10" width="470" height="150" rx="2"/>
+        <text class="lbl" x="660" y="38">ISSUER ACTION  A_t</text>
+        <text class="txt-s" x="660" y="66">Credit line change, APR change</text>
+        <text class="txt-s" x="660" y="91">Rewards mix, authorization tightness</text>
+        <text class="txt-s" x="660" y="116">Hardship programs, incentives</text>
+        <text class="txt-s" x="660" y="141">Constraints C(A,S) checked before it runs</text>
+
+        <path class="con" d="M287 160 L287 190 L580 190"/>
+        <path class="con" d="M873 160 L873 190 L580 190"/>
+        <path class="con" d="M580 190 L580 222" marker-end="url(#ah)"/>
+
+        <rect class="bx-t" x="150" y="226" width="860" height="140" rx="2"/>
+        <text class="lbl lbl-t" x="176" y="254">TRANSITION  P( S_t+1 | S_t , A_t , M_t )   —   ONE SIMULATED DAY</text>
+        <text class="txt-s" x="176" y="284">1 &nbsp;Policy applied to ledger constraints</text>
+        <text class="txt-s" x="176" y="309">2 &nbsp;Shocks drawn — job loss, medical, regional</text>
+        <text class="txt-s" x="176" y="334">3 &nbsp;Household cash flow and demand</text>
+        <text class="txt-s" x="620" y="284">4 &nbsp;Learned residual adjusts event intensities</text>
+        <text class="txt-s" x="620" y="309">5 &nbsp;Events sampled, posted to the ledger</text>
+        <text class="txt-s" x="620" y="334">6 &nbsp;Daily close — interest, fees, min-pay, aging</text>
+
+        <path class="con" d="M580 366 L580 398" marker-end="url(#ah)"/>
+
+        <rect class="bx" x="150" y="402" width="860" height="82" rx="2"/>
+        <text class="lbl" x="176" y="430">NEXT STATE  S_t+1   +   REWARD  R_t  ( IN DOLLARS )</text>
+        <text class="txt-s" x="176" y="461">Net interest margin &nbsp;·&nbsp; Interchange &nbsp;·&nbsp; Credit losses &nbsp;·&nbsp; Churn &nbsp;·&nbsp; Operating cost</text>
+
+        <path class="con-d" d="M150 443 L28 443 L28 85 L52 85" marker-end="url(#ah-a)"/>
+        <text class="flowlbl" transform="rotate(-90 20 295)" x="20" y="295" text-anchor="middle">ROLL FORWARD — 18 MONTHS OF DAILY STEPS</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ===== 05 HYBRID STACK ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>05</b><span>Architecture</span><span class="rule"></span><span>Hybrid, not one big neural net</span></div>
+    <h2>Accounting is enforced. Only behavior is learned.</h2>
+    <div class="body">
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Layer</th><th>Role</th><th>Why it is built this way</th></tr></thead>
+          <tbody>
+            <tr><th><span class="mono" style="color:var(--amber)">L0</span> &nbsp;Ledger</th><td class="mkt">Deterministic posting engine — balances, cycles, interest, min-pay, aging.</td><td>Non-negotiable. Learn the ledger and balances drift; model risk rejects it on sight.</td></tr>
+            <tr><th><span class="mono" style="color:var(--amber)">L1</span> &nbsp;Households</th><td class="mkt">Calibrated microsimulation — income, non-discretionary burn, liquidity-constrained payment, substitution.</td><td>Interpretable and stress-stable. Runs a million accounts on CPU, and answers the MVP question on its own.</td></tr>
+            <tr><th><span class="mono" style="color:var(--amber)">L2</span> &nbsp;Residual</th><td class="mkt">Event transformer correcting spend intensity by category, payment propensity, churn hazard, merchant choice.</td><td>Captures the habit the structural layer misses. Shrunk toward zero, and always decoded through L0.</td></tr>
+            <tr><th><span class="mono" style="color:var(--amber)">L3</span> &nbsp;Shocks</th><td class="mkt">Macro to regional to household — unemployment, CPI, medical and job-loss mixtures.</td><td>Keeps exogenous climate separate from the policy being tested.</td></tr>
+            <tr><th><span class="mono" style="color:var(--amber)">L4</span> &nbsp;Policy</th><td class="mkt">Declarative issuer rules in v1; constrained RL later, as a consumer of the environment.</td><td>The learner never sits inside the kernel. That boundary is what keeps v1 reviewable.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid g2" style="flex:none">
+        <div class="card" style="padding:16px 20px">
+          <span class="tag t">Runtime, one day</span>
+          <div class="vecrow">
+            <span class="chip">structural rate</span><span class="arrow">&times;</span><span class="chip a">learned correction</span><span class="arrow">&rarr;</span><span class="chip">sample events</span><span class="arrow">&rarr;</span><span class="chip t">post to ledger</span><span class="arrow">&rarr;</span><span class="chip t">daily close</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <span class="tag">Why not one giant transformer</span>
+          <p style="font-size:13px">A next-event model will not enforce a credit limit, statement math, or a 90-day default lag. It earns its place as a correction term and a synthetic decoder — never as the accounting.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 06 WHAT IT SEES ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>06</b><span>Behavioral fidelity</span><span class="rule"></span><span>Two things a scorecard cannot see</span></div>
+    <h2>Trouble arriving early, and what happens after the decline.</h2>
+    <div class="body">
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <span class="tag">01 &mdash; Distress that shows up in the stream before it shows up in the score</span>
+        <div class="ledger">
+          <div class="row head"><span>TIMESTAMP</span><span>MCC</span><span>MERCHANT</span><span class="amt">AMOUNT</span><span class="bal">BALANCE</span></div>
+          <div class="row in"><span>2026-03-01T08:12</span><span>0000</span><span>DIRECT DEPOSIT &middot; PAYROLL</span><span class="amt">+2,410.00</span><span class="bal">3,118.44</span></div>
+          <div class="row"><span>2026-03-01T09:02</span><span>6513</span><span>RENT &middot; ACH RECURRING</span><span class="amt">&minus;1,650.00</span><span class="bal">1,468.44</span></div>
+          <div class="row"><span>2026-03-03T18:47</span><span>5411</span><span>M_9f21 &middot; GROCERY</span><span class="amt">&minus;142.86</span><span class="bal">1,325.58</span></div>
+          <div class="row stress"><span>2026-03-11T14:20</span><span>8062</span><span>M_77b3 &middot; HOSPITAL</span><span class="amt">&minus;890.00</span><span class="bal">374.38</span></div>
+          <div class="row stress"><span>2026-03-12T19:55</span><span>6011</span><span>ATM CASH ADVANCE &middot; CARD</span><span class="amt">&minus;300.00</span><span class="bal">74.38</span></div>
+        </div>
+        <p style="font-size:13.5px;line-height:1.5;color:var(--muted);margin:0">Two customers can hold the same credit score while one of them is three weeks from empty. The score cannot separate them. The stream can &mdash; cash buffer, burn rate, and where this card sits in the wallet are read straight off the events.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <span class="tag t">02 &mdash; Where the money goes when the card says no</span>
+        <div class="vecrow">
+          <span class="chip">limit reached</span><span class="arrow">&mdash;&rarr;</span>
+          <span class="chip">authorization declined</span><span class="arrow">&mdash;&rarr;</span>
+          <span class="chip t">competitor card</span>
+          <span class="chip t">cart abandoned</span>
+          <span class="chip t">pay-later at checkout</span>
+          <span class="chip a">retry same card</span>
+        </div>
+        <p style="font-size:13.5px;line-height:1.5;color:var(--muted);margin:0">Each branch writes a different future. The competitor branch re-ranks the wallet permanently and costs interchange for months; abandonment keeps the relationship but suppresses spend. A model that only predicts default sees neither.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 07 ACTION + REWARD ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>07</b><span>Action space</span><span class="rule"></span><span>Levers, objective, constraints</span></div>
+    <h2>What the bank may pull, and what counts as winning.</h2>
+    <div class="body">
+      <div class="grid g3">
+        <div class="card">
+          <span class="tag">Line management</span>
+          <p>Limit increases and cuts, and freezes with a duration. The cuts matter most: they are the policies that are effectively untestable in production today.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Timing and hardship</span>
+          <p>Proactive alerts, balance-transfer offers, restructuring — placed <b>before</b> delinquency, where the simulation says the household is weeks from a shortfall.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Pricing and rewards</span>
+          <p>APR moves, category multipliers, authorization tightness. Measured on risk-adjusted lifetime value, not thirty-day spend lift.</p>
+        </div>
+      </div>
+      <div class="formula">
+R_t  =  <span class="pos">NIM</span>  +  <span class="pos">interchange</span>  &minus;  <span class="neg">credit losses</span>  &minus;  <span class="neg">churn</span>  &minus;  <span class="neg">operating cost</span>   <span class="cmt">// dollars, not a score</span>
+subject to   fair-lending constraints     credit appetite     max line change per period     operational feasibility
+      </div>
+      <p class="dek" style="max-width:none;margin-top:auto;border-top:1px solid var(--line);padding-top:20px">The constraint line is not decoration. Optimize the reward alone and the policy finds the same shortcuts a bad underwriter would. Constraints live inside the optimizer, with the trade-off curve written down &mdash; and latent embeddings are never used as a reason for declining anyone.</p>
+    </div>
+  </section>
+
+  <!-- ===== 08 DEMO ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>08</b><span>Demo</span><span class="rule"></span><span>The canonical counterfactual</span></div>
+    <h2>Cut the line 20% into an inflation spike. Watch 18 months in two minutes.</h2>
+    <!-- DEMO SLOT — replace this block with <iframe src="..."> or an embedded recording -->
+    <div class="demo-slot" id="demoSlot">
+      <div class="inner">
+        <span class="pulse" aria-hidden="true"></span>
+        <span class="tag">Workbench demo embeds here</span>
+        <p style="font-size:14.5px;line-height:1.55;color:var(--muted);margin:0">Build the scenario, run it, and read treatment against control &mdash; paired on the same random seeds so the difference is the policy and nothing else.</p>
+        <div class="vecrow" style="justify-content:center;margin-top:4px">
+          <span class="chip">cohort: 70%+ utilization, 3-cycle revolvers, grade B–C</span>
+          <span class="chip a">action: &times;0.80 limit, increases frozen 6 months</span>
+        </div>
+        <div class="vecrow" style="justify-content:center">
+          <span class="chip">macro: CPI +6%, unemployment +150bps</span>
+          <span class="chip t">10,000 accounts &middot; 100 paths &middot; 18 months</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid g3" style="flex:none">
+      <div class="card" style="padding:14px 18px">
+        <span class="tag">Watch &middot; 1</span>
+        <p style="font-size:13px">Fan charts at p10 / p50 / p90 for default, spend, interchange, NIM and utilization.</p>
+      </div>
+      <div class="card" style="padding:14px 18px">
+        <span class="tag">Watch &middot; 2</span>
+        <p style="font-size:13px">Displaced spend — volume leaving the card for a competitor, month by month.</p>
+      </div>
+      <div class="card" style="padding:14px 18px">
+        <span class="tag">Watch &middot; 3</span>
+        <p style="font-size:13px">Every dollar reconciles to the cent, and the run exports with a model card and an audit id.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 09 USE CASES + GOVERNANCE ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>09</b><span>Applications</span><span class="rule"></span><span>Who buys it, and what governs it</span></div>
+    <h2>One simulator, five jobs already asking for it.</h2>
+    <div class="body">
+      <div class="grid g4" style="flex:1">
+        <div class="card">
+          <span class="tag">Head of Credit &amp; Card</span>
+          <h3>Policy search without live casualties</h3>
+          <p>Compare line, APR and rewards policies on risk-adjusted lifetime value before any of them reaches a customer.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Stress-testing analyst</span>
+          <h3>Scenarios that reach the product</h3>
+          <p>Map a macro path down to household shocks and get loss, NIM and spend paths — not just a portfolio-level loss grid.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Data science platforms</span>
+          <h3>Sandboxes nobody has to beg for</h3>
+          <p>Synthetic event data that behaves like the real thing and passes re-identification tests, so vendors and squads stop waiting on access reviews.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Head of Fraud &amp; AML</span>
+          <h3>Adversaries generated on demand</h3>
+          <p>Fraud rings and structuring paths run against a frozen detection stack, to find the blind spot before a ring does.</p>
+        </div>
+      </div>
+      <div class="card" style="padding:16px 20px;flex:none">
+        <span class="tag">Governance is the fifth job, and it ships with the product</span>
+        <div class="vecrow">
+          <span class="chip a">decision_support_only: true</span>
+          <span class="chip">model card per version</span>
+          <span class="chip">append-only audit log</span>
+          <span class="chip">lineage: raw bundle &rarr; snapshot &rarr; checkpoint &rarr; scenario &rarr; metric</span>
+          <span class="chip t">no write path to account management</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 10 CLOSE ===== -->
+  <section class="slide">
+    <div class="eyebrow"><b>10</b><span>Path forward</span><span class="rule"></span><span>Build sequence &amp; honest risks</span></div>
+    <h2>Earn the counterfactual before anyone trusts it.</h2>
+    <div class="body">
+      <div class="phases">
+        <div class="phase">
+          <span class="n">FOUNDATION</span><h4>Ledger and sandbox</h4>
+          <p>Schemas, the posting engine under property tests, a synthetic sandbox, ingest and data-quality gates.</p>
+          <span class="when">Months 0–2</span>
+        </div>
+        <div class="phase">
+          <span class="n">MVP</span><h4>One portfolio, one counterfactual</h4>
+          <p>Households, daily close and the line-cut scenario end to end. 10k accounts interactive; a million overnight.</p>
+          <span class="when">Months 2–4</span>
+        </div>
+        <div class="phase">
+          <span class="n">PHASE 1</span><h4>Learned residual</h4>
+          <p>The event transformer, merchant-graph features, privacy test suite, fraud packs, and an RL-ready environment.</p>
+          <span class="when">Months 4–10</span>
+        </div>
+        <div class="phase">
+          <span class="n">PHASE 2</span><h4>Constrained policy search</h4>
+          <p>Offline RL in simulation only, deposits joined to cards, scale to ten million accounts. Still human-gated.</p>
+          <span class="when">Months 10–18</span>
+        </div>
+      </div>
+      <div class="grid g3">
+        <div class="card">
+          <span class="tag" style="color:var(--red)">Risk</span>
+          <div class="risk"><span class="m">01</span><span><b>Thin evidence on line cuts.</b> Few banks have cut lines at scale, so the effect is weakly identified. We publish bounds and let the interface refuse to sound confident.</span></div>
+        </div>
+        <div class="card">
+          <span class="tag" style="color:var(--red)">Risk</span>
+          <div class="risk"><span class="m">02</span><span><b>Model risk rejects the learned layer.</b> The structural kernel is certified on its own and answers the MVP question; the residual ships as a challenger that has to earn its way in.</span></div>
+        </div>
+        <div class="card">
+          <span class="tag" style="color:var(--red)">Risk</span>
+          <div class="risk"><span class="m">03</span><span><b>Premature use in production.</b> The gravest one. No production status in the API, no connector to account management, and it is written into the contract.</span></div>
+        </div>
+      </div>
+      <p class="dek" style="max-width:none;color:var(--text);font-size:18px">Today a bank learns from the money it has already lost. LedgerWorld is the argument that it can learn first.</p>
+    </div>
+  </section>
+
+  <!-- ===== speaker notes ===== -->
+  <div class="notes" id="notes" aria-hidden="true">
+    <div class="hd"><b>Speaker notes</b><span id="noteNum">01</span><span class="rule"></span><span>Press N to hide</span></div>
+    <div class="txt" id="noteText"></div>
+  </div>
+
+  <!-- ===== rail ===== -->
+  <div class="rail">
+    <div class="railmeta"><span>Retail Banking World Model</span></div>
+    <div class="ticks" id="ticks"></div>
+    <div class="railmeta"><span id="counter">01 / 10</span></div>
+    <div class="nav">
+      <button id="prev" aria-label="Previous slide">←</button>
+      <button id="next" aria-label="Next slide">→</button>
+      <button id="notesBtn" aria-label="Speaker notes">N</button>
+      <button id="tocBtn" aria-label="Contents">☰</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var titles = ['Title','The problem','Anatomy of the model','Retail is not a market','Latent state representation','Generative dynamics engine','Action space & objective','Demo — live counterfactual','Applications','Path forward'];
+  var notes = [
+    ["Here is the whole idea in one sentence: we are building a video-game version of a bank's customers.",
+     "Not the real customers. A simulation of them. You press play and watch what happens to their money over the next year and a half. Then you go back, change one thing the bank does, and play it again.",
+     "Banks already build things like this for the stock market. Almost nobody has built a good one for ordinary people with a checking account and a credit card. That is the gap."],
+
+    ["Here is how it works today. A bank makes a decision — let's say it lowers someone's credit limit. Then it waits. If that was a bad call, they find out roughly six months later, when people stop paying.",
+     "And here is the part that really hurts: they only ever find out about the choice they made. They never learn what would have happened if they had done the opposite, because that version of the world never happened. There is no recording of it.",
+     "So the only way to test a new idea is to try it on real people and see who gets hurt. Which means the boldest ideas never get tested at all.",
+     "Read the question on the screen out loud. It is a completely reasonable thing to ask in a meeting, and right now nobody in the building can answer it."],
+
+    ["This is the loop the simulation runs, and it is simpler than it looks.",
+     "Top left is the situation right now: how much money you have, what bills are about to hit, where you shop, what the economy is doing. Top right is what the bank does: raise your limit, cut it, change your rate, send you an offer.",
+     "The middle box is the hard part — the guessing machine. Given your situation and what the bank just did, what do you actually do next month?",
+     "The bottom is the result: the bank made or lost some money, and you are now in a new situation. Then the arrow on the left carries that new situation back to the top and it runs again. One loop is one month. Run it eighteen times and you have a year and a half of a life."],
+
+    ["Somebody always asks why we cannot just reuse what the trading desks already built. Fair question. Short answer: it is a completely different problem.",
+     "The stock market moves every millisecond, and the people in it are trying to win. Regular people are not like that. You get paid on the 1st and the 15th. You buy groceries on the same day most weeks. When money is tight, you pay rent before you pay the credit card. Habit matters more than math.",
+     "And the feedback is slow. In trading you know within a second whether you were right. Here it takes months. That is why the tools have to be different."],
+
+    ["This is what the model actually reads — your transactions, in order, exactly as they happen.",
+     "Follow the rows. Paycheck comes in. Rent goes straight out. Groceries, gas, normal stuff. Then a hospital bill for eight hundred and ninety dollars, and the next day, a cash advance from an ATM. That cash advance is somebody who has run out of options.",
+     "You can see the trouble arriving before any credit score would notice it. That is the whole point of this slide. Two people can have the identical credit score and one of them is three weeks from zero. The score cannot tell you which. The stream can.",
+     "The row underneath shows what the model turns all of that into: a short summary of the person's situation that the rest of the system can use."],
+
+    ["This is the engine that guesses what happens next month. It can also throw in a curveball on purpose — someone loses a job, prices jump, a medical bill lands.",
+     "The strip at the bottom is my favorite part, and it is the part everyone else skips. When a card gets declined at the register, something happens next. Most people just pull out a different card. Some give up and leave. A few use one of those pay-later buttons.",
+     "Every one of those is a different future for the bank. And the first one — pulling out a different card — is the expensive one, because now that other card is the one they reach for from then on. You did not just lose one sale. You lost the habit.",
+     "A model that only predicts who defaults cannot see any of this."],
+
+    ["Two halves to this slide. What the bank is allowed to pull — limits, rates, offers, rewards — and what counts as winning.",
+     "The formula looks intimidating but it says something obvious: money earned, minus money lost. Interest and swipe fees on one side, defaults and people leaving on the other.",
+     "The second line is the one to actually care about. Those are the rules the simulation is not allowed to break.",
+     "Here is why that matters. If you tell a system like this to just win, it will find sneaky ways to win — like quietly deciding whole groups of people are not worth lending to. So we build the limits in from the start, instead of catching it afterward. That is also the difference between something a regulator approves and something that gets us in the news."],
+
+    ["[Demo goes here — team is bringing it.]",
+     "What you are about to watch: the same group of people, two versions of the future running side by side. In one, nothing changes. In the other, the bank cuts everyone's credit limit by twenty percent right as prices are rising.",
+     "Watch three things. Do more people start missing payments. Does their spending move over to other cards. And at the end — after everything — did the bank come out ahead or behind.",
+     "That is the question from slide two, answered in about nine seconds instead of eighteen months."],
+
+    ["Four ways this pays for itself. Keep it quick.",
+     "One: practice for a recession before it shows up, instead of finding out how bad it is while it is happening.",
+     "Two: let the computer try thousands of different policies inside the simulator, instead of trying a handful of them on real customers.",
+     "Three: hand outside developers fake data that behaves like the real thing, so nobody's actual bank records ever leave the building.",
+     "Four: invent fraudsters — whole rings of them — and see whether the fraud system catches them. Better we find the hole than they do."],
+
+    ["I want to be straight about what could go wrong, because this is the slide people actually remember.",
+     "A simulation is a guess. A well-tested guess, but a guess. So nothing goes live straight from it. Anything the model recommends gets tried on a small real group first, the same way a new drug does.",
+     "Regulators have never seen anything like this, so we write the paperwork while we build it, not after. If we leave that to the end, it does not ship.",
+     "And we keep checking, constantly, that the system is not quietly being unfair to anyone. That is not a box to tick at the end — it runs every time the model does.",
+     "The four boxes across the top are roughly a year of work. And then the last line, which is the one I would leave them with: right now a bank learns from money it has already lost. This lets it learn before it loses it."]
+  ];
+  var i = 0, n = slides.length;
+  var ticks = document.getElementById('ticks');
+  var counter = document.getElementById('counter');
+  var toc = document.getElementById('toc');
+  var tocList = document.getElementById('tocList');
+  var notesEl = document.getElementById('notes');
+  var noteText = document.getElementById('noteText');
+  var noteNum = document.getElementById('noteNum');
+
+  for (var k = 0; k < n; k++){
+    var t = document.createElement('span'); t.className = 'tick'; ticks.appendChild(t);
+    var li = document.createElement('li');
+    li.setAttribute('tabindex','0');
+    li.innerHTML = '<span class="n">' + String(k+1).padStart(2,'0') + '</span><span>' + titles[k] + '</span>';
+    (function(idx){
+      li.addEventListener('click', function(){ go(idx); closeToc(); });
+      li.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(idx); closeToc(); } });
+    })(k);
+    tocList.appendChild(li);
+  }
+  var tickEls = ticks.children, tocEls = tocList.children;
+
+  function go(next){
+    i = Math.max(0, Math.min(n-1, next));
+    for (var k = 0; k < n; k++){
+      slides[k].classList.toggle('on', k === i);
+      tickEls[k].className = 'tick' + (k < i ? ' done' : k === i ? ' now' : '');
+      tocEls[k].classList.toggle('now', k === i);
+    }
+    counter.textContent = String(i+1).padStart(2,'0') + ' / ' + String(n).padStart(2,'0');
+    noteNum.textContent = String(i+1).padStart(2,'0');
+    noteText.innerHTML = '';
+    (notes[i] || []).forEach(function(para){
+      var el = document.createElement('p');
+      if (para.charAt(0) === '[') el.className = 'cue';
+      el.textContent = para;
+      noteText.appendChild(el);
+    });
+  }
+  function toggleNotes(){
+    var on = notesEl.classList.toggle('on');
+    notesEl.setAttribute('aria-hidden', on ? 'false' : 'true');
+  }
+  function openToc(){ toc.classList.add('on'); toc.setAttribute('aria-hidden','false'); }
+  function closeToc(){ toc.classList.remove('on'); toc.setAttribute('aria-hidden','true'); }
+
+  document.getElementById('prev').addEventListener('click', function(){ go(i-1); });
+  document.getElementById('next').addEventListener('click', function(){ go(i+1); });
+  document.getElementById('notesBtn').addEventListener('click', toggleNotes);
+  document.getElementById('tocBtn').addEventListener('click', function(){ toc.classList.contains('on') ? closeToc() : openToc(); });
+
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); closeToc(); go(i+1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); closeToc(); go(i-1); }
+    else if (k === 'Home') { closeToc(); go(0); }
+    else if (k === 'End') { closeToc(); go(n-1); }
+    else if (k === 'n' || k === 'N') { toggleNotes(); }
+    else if (k === 'o' || k === 'O') { toc.classList.contains('on') ? closeToc() : openToc(); }
+    else if (k === 'Escape') { closeToc(); notesEl.classList.remove('on'); notesEl.setAttribute('aria-hidden','true'); }
+    else if (/^[1-9]$/.test(k)) { closeToc(); go(parseInt(k,10)-1); }
+    else if (k === '0') { closeToc(); go(9); }
+  });
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720) * 0.965;
+    document.documentElement.style.setProperty('--k', s);
+  }
+  window.addEventListener('resize', fit);
+  fit(); go(0);
+})();
+</script>
